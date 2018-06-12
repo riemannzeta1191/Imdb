@@ -6,6 +6,7 @@ from .models import MovieModel
 from .models import GenreModel
 from .validators import MovieValidator
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 # Create your views here.
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Q,Search
@@ -15,6 +16,7 @@ es = Elasticsearch()
 
 class SearchMovies(APIView):
     serializer = MovieValidator
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         movie = request.GET.get('movie',None)
@@ -29,6 +31,7 @@ class SearchMovies(APIView):
 
 
 class ElasticSearch(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         query = request.GET.get('q',None)
@@ -42,6 +45,8 @@ class ElasticSearch(APIView):
 
 
 class GenreSearch(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
     def get(self, request):
         query = request.GET.get('q', None)
         s = Search(using=es, index="movie-index")
@@ -55,6 +60,7 @@ class GenreSearch(APIView):
 class BestMovies(APIView):
 
     serializer = MovieValidator
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self,request):
         director = request.GET.get('director',None)
