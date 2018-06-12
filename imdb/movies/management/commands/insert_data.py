@@ -7,7 +7,7 @@ from django.conf import settings
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        filepath = "/Users/sayan/Documents/imdb/imdb" + '/imdb.json'
+        filepath = "BASE_DIR" + '/imdb.json'
         with open(filepath, 'r') as f:
             raw_data = f.read()
             data = json.loads(raw_data)
@@ -19,7 +19,6 @@ class Command(BaseCommand):
                 movie_dict['imdb_score'] = movie_item.get('imdb_score')
                 movie, created = MovieModel.objects.get_or_create(**movie_dict)
                 genre_list = movie_item.get('genre')
-                # create genre for each genre in list and attach to current movie
                 for name in genre_list:
                     name = name.strip()
                     genre, created = GenreModel.objects.get_or_create(genre=name)
