@@ -1,13 +1,13 @@
 import json
 from django.core.management.base import BaseCommand
 from ...models import GenreModel,MovieModel
-
+from imdb.settings import BASE_DIR
 from django.conf import settings
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        filepath = "BASE_DIR" + '/imdb.json'
+        filepath = BASE_DIR + '/imdb.json'
         with open(filepath, 'r') as f:
             raw_data = f.read()
             data = json.loads(raw_data)
