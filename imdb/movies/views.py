@@ -1,25 +1,22 @@
-import json
+
 
 from rest_framework.response import Response
-from django.http import JsonResponse
 from rest_framework import status
 from .models import MovieModel
 from  django.core.exceptions import ObjectDoesNotExist
-from .models import GenreModel
 from .validators import MovieValidator
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import permissions
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-# Create your views here.
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Q,Search
-from elasticsearch_dsl.query import MultiMatch,Match
 es = Elasticsearch()
+# Create your views here.
 
 
 class SearchMovies(APIView):
     serializer = MovieValidator
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         movie = request.GET.get('movie',None)
@@ -34,7 +31,6 @@ class SearchMovies(APIView):
 
 
 class ElasticSearch(APIView):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         query = request.GET.get('q',None)
@@ -44,11 +40,11 @@ class ElasticSearch(APIView):
         s = s[:300].sort()
         response = s.execute()
         response = response.to_dict()
+        response = response['hits']['hits']
         return Response(response, status = status.HTTP_200_OK)
 
 
 class GenreSearch(APIView):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         query = request.GET.get('q', None)
@@ -57,13 +53,13 @@ class GenreSearch(APIView):
         s = s[:300].sort()
         response = s.execute()
         response = response.to_dict()
+        response = response['hits']['hits']
         return Response(response, status=status.HTTP_200_OK)
 
 
 class BestMovies(APIView):
 
     serializer = MovieValidator
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         director = request.GET.get('director',None).title()
@@ -81,7 +77,6 @@ class BestMovies(APIView):
 
 class SearchByGenreAndDirector(APIView):
     serializer = MovieValidator
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request):
         director = request.GET.get('director', None).title()
@@ -98,3 +93,30 @@ class SearchByGenreAndDirector(APIView):
                     response.setdefault('movies', [])
                     response["movies"].append(serialized.data)
         return Response(response, status.HTTP_200_OK)
+
+
+class DeleteMovie(APIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def delete(self, request, id):
+        try:
+             movie = MovieModel.objects.get(id = id)
+             movie.delete()
+             return Response(status=status.HTTP_204_NO_CONTENT)
+        except ObjectDoesNotExist as e:
+            print(str(e))
+            return Response(data = {"message": "Given movie is not present"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ReadMovie(APIView):
+    serializer = MovieValidator
+
+    def get(self, request, id):
+        try:
+            movie = MovieModel.objects.get(id=id)
+            serialized = self.serializer(movie)
+            data = serialized.data
+            return Response(data=data,status=status.HTTP_204_NO_CONTENT)
+        except ObjectDoesNotExist as e:
+            print(str(e))
+            return Response(data={"message": "Given movie is not present"}, status=status.HTTP_404_NOT_FOUND)
