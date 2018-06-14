@@ -7,10 +7,13 @@ https://ancient-gorge-18685.herokuapp.com/imdb/movies/
 Lists all movies.The api is a generic list view
 
 https://ancient-gorge-18685.herokuapp.com/imdb/elastic/?q=Shadow of a Doubt
-ngrok link : -http://c4418e3f.ngrok.io/imdb/elastic/?q=Shadow of a Doubt which exposes the elasticsearch backend
+
+ngrok link : -http://c4418e3f.ngrok.io/imdb/elastic/?q=Shadow of a Doubt 
+which exposes the elasticsearch backend
 Lists movies based upon movie name or director name through partial search
 
 https://ancient-gorge-18685.herokuapp.com/imdb/elastic/genre/?q=drama
+
 http://c4418e3f.ngrok.io/imdb/elastic/genre/?q=drama
 Lists movies based upon genre
 
