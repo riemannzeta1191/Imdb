@@ -6,7 +6,7 @@ from .models import MovieModel
 from  django.core.exceptions import ObjectDoesNotExist
 from .validators import MovieValidator
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.generics import GenericAPIView
 from rest_framework import permissions
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from elasticsearch import Elasticsearch
@@ -15,7 +15,7 @@ es = Elasticsearch()
 # Create your views here.
 
 
-class SearchMovies(APIView):
+class SearchMovies(GenericAPIView):
     serializer = MovieValidator
 
     def get(self, request):
@@ -30,7 +30,7 @@ class SearchMovies(APIView):
         return Response(data,status=status.HTTP_200_OK)
 
 
-class ElasticSearch(APIView):
+class ElasticSearch(GenericAPIView):
 
     def get(self, request):
         query = request.GET.get('q',None)
@@ -95,21 +95,9 @@ class SearchByGenreAndDirector(APIView):
         return Response(response, status.HTTP_200_OK)
 
 
-class DeleteMovie(APIView):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def delete(self, request, id):
-        try:
-             movie = MovieModel.objects.get(id = id)
-             movie.delete()
-             return Response(status=status.HTTP_204_NO_CONTENT)
-        except ObjectDoesNotExist as e:
-            print(str(e))
-            return Response(data = {"message": "Given movie is not present"}, status=status.HTTP_404_NOT_FOUND)
-
-
-class ReadMovie(APIView):
+class MovieCRUD(APIView):
     serializer = MovieValidator
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get(self, request, id):
         try:
@@ -117,6 +105,15 @@ class ReadMovie(APIView):
             serialized = self.serializer(movie)
             data = serialized.data
             return Response(data=data,status=status.HTTP_204_NO_CONTENT)
+        except ObjectDoesNotExist as e:
+            print(str(e))
+            return Response(data={"message": "Given movie is not present"}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, id):
+        try:
+            movie = MovieModel.objects.get(id=id)
+            movie.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist as e:
             print(str(e))
             return Response(data={"message": "Given movie is not present"}, status=status.HTTP_404_NOT_FOUND)
