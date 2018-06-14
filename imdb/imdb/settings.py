@@ -27,10 +27,10 @@ SECRET_KEY = '1@yxe6*&(#qp_lh(==p93s0jr70h&+0rnllau4p_-$j6kyu)%7'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    "ancient-gorge-18685.herokuapp.com",
     "localhost",
-    "127.0.0.1"
+    "127.0.0.1",
 ]
-
 
 # Application definition
 
