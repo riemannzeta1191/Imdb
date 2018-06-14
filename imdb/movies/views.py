@@ -7,6 +7,7 @@ from  django.core.exceptions import ObjectDoesNotExist
 from .validators import MovieValidator
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
+from rest_framework import generics
 from rest_framework import permissions
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from elasticsearch import Elasticsearch
@@ -15,17 +16,17 @@ es = Elasticsearch()
 # Create your views here.
 
 
-class SearchMovies(GenericAPIView):
+class SearchMovies(generics.ListCreateAPIView):
     serializer = MovieValidator
+    queryset = MovieModel.objects.all()
 
-    def get(self, request):
+    def list(self, request, *args, **kwargs):
         movie = request.GET.get('movie',None)
+        queryset = self.get_queryset()
         if movie:
-            queryset = MovieModel.objects.filter(name__icontains = movie)
-        else:
-            queryset = MovieModel.objects.all()
+            queryset = queryset.filter(name__icontains = movie)
 
-        serialized = self.serializer(queryset, many=True)
+        serialized = self.serializer(queryset,many=True)
         data = serialized.data
         return Response(data,status=status.HTTP_200_OK)
 
