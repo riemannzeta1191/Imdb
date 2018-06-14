@@ -1,12 +1,15 @@
 import json
 
 from rest_framework.response import Response
+from django.http import JsonResponse
 from rest_framework import status
 from .models import MovieModel
+from  django.core.exceptions import ObjectDoesNotExist
 from .models import GenreModel
 from .validators import MovieValidator
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 # Create your views here.
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Q,Search
@@ -62,13 +65,36 @@ class BestMovies(APIView):
     serializer = MovieValidator
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def get(self,request):
-        director = request.GET.get('director',None)
-        movies = MovieModel.objects.filter(director = director,imdb_score__gte=7)
+    def get(self, request):
+        director = request.GET.get('director',None).title()
+        movies = MovieModel.objects.filter(director = director,imdb_score__gte=7).order_by('-imdb_score')
         movies = list(movies)
+        if len(movies)==0:
+            return Response(data={"message": "The director is not present"}, status=status.HTTP_404_NOT_FOUND)
         response ={}
         for movie in movies:
             serialized = self.serializer(movie)
             response.setdefault('movies',[])
             response["movies"].append(serialized.data)
         return Response(response,status.HTTP_200_OK)
+
+
+class SearchByGenreAndDirector(APIView):
+    serializer = MovieValidator
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get(self, request):
+        director = request.GET.get('director', None).title()
+        genre = request.GET.get('genre',None).title()
+        movies = MovieModel.objects.filter(director=director).prefetch_related('genre').order_by('-imdb_score')
+        if len(movies)==0:
+            return Response(data={"message": "The director has no movie with the given genre"}, status=status.HTTP_404_NOT_FOUND)
+        response = {}
+        for movie in movies:
+            queryset = movie.genre.all()
+            for element in queryset:
+                if genre in element.genre:
+                    serialized = self.serializer(movie)
+                    response.setdefault('movies', [])
+                    response["movies"].append(serialized.data)
+        return Response(response, status.HTTP_200_OK)

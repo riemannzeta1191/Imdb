@@ -6,9 +6,8 @@ from .search import MovieIndex
 class GenreModel(models.Model):
     genre = models.CharField(max_length=200)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.genre
-
 
 
 class MovieModel(models.Model):
@@ -17,6 +16,10 @@ class MovieModel(models.Model):
     popularity_99 = models.DecimalField(max_digits=4, decimal_places=1)
     imdb_score = models.DecimalField(max_digits=4, decimal_places=1)
     genre = models.ManyToManyField(GenreModel)
+
+    def __str__(self):
+        return "%s (%s)" % (self.name, ", ".join(genre.genre
+                                                 for genre in self.genre.all()))
 
     def indexing(self):
         genre = []
