@@ -17,7 +17,7 @@ es = Elasticsearch()
 
 
 class SearchMovies(generics.ListCreateAPIView):
-    serializer = MovieValidator
+    serializer_class = MovieValidator
     queryset = MovieModel.objects.all()
 
     def list(self, request, *args, **kwargs):
@@ -26,7 +26,7 @@ class SearchMovies(generics.ListCreateAPIView):
         if movie:
             queryset = queryset.filter(name__icontains = movie)
 
-        serialized = self.serializer(queryset,many=True)
+        serialized = self.serializer_class(queryset,many=True)
         data = serialized.data
         return Response(data,status=status.HTTP_200_OK)
 
